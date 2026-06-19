@@ -40,7 +40,7 @@ from adafruit_bno08x.i2c import BNO08X_I2C
 SHOW_FACE_LABELS = True
 SHOW_MOTION_ARROW = True
 MOTION_ARROW_SCALE = 1.2
-MOTION_ARROW_MIN_LENGTH = 0.7
+MOTION_ARROW_MIN_LENGTH = 1.0
 MOTION_ARROW_MAX_LENGTH = 2.0
 MOTION_THRESHOLD = 0.08
 
@@ -175,14 +175,14 @@ FACE_INFO = [
     {
         "indices": [0, 1, 5, 4],
         "axis": "-Y",
-        "name": "FRONT",
+        "name": "BACK",
         "label": "-Y",
         "color": "royalblue",
     },
     {
         "indices": [2, 3, 7, 6],
         "axis": "+Y",
-        "name": "BACK",
+        "name": "FRONT",
         "label": "+Y",
         "color": "mediumorchid",
     },
