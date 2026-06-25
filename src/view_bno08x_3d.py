@@ -163,7 +163,7 @@ FACE_INFO = [
         "axis": "-Z",
         "name": "BOTTOM",
         "label": "-Z",
-        "color": "slategray",
+        "color": "cyan",
     },
     {
         "indices": [4, 5, 6, 7],
@@ -217,15 +217,15 @@ def setup_3d_axis(ax):
     ax.set_ylim(-2.8, 2.8)
     ax.set_zlim(-2.2, 2.2)
 
-    ax.set_xlabel("Axis X", fontsize=11, labelpad=8)
-    ax.set_ylabel("Axis Y", fontsize=11, labelpad=8)
-    ax.set_zlabel("Axis Z", fontsize=11, labelpad=8)
+    ax.set_xlabel("Axis X", fontsize=11, labelpad=12)
+    ax.set_ylabel("Axis Y", fontsize=11, labelpad=12)
+    ax.set_zlabel("Axis Z", fontsize=11, labelpad=12)
 
     ax.set_xticks(np.arange(-2, 3, 1))
     ax.set_yticks(np.arange(-2, 3, 1))
     ax.set_zticks(np.arange(-2, 3, 1))
 
-    ax.tick_params(labelsize=8)
+    ax.tick_params(labelsize=12)
 
     ax.set_box_aspect([1, 1, 0.8])
     ax.view_init(elev=VIEW_ELEV, azim=VIEW_AZIM)
@@ -334,7 +334,7 @@ def update(frame):
             if face["axis"] == gravity_axis:
                 label_text = f"{face['label']}\nG"
 
-            label_pos = center + 0.08 * outward_normal
+            label_pos = center + 0.5 * outward_normal
             edge_color = "red" if face["axis"] == gravity_axis else "black"
 
             ax.text(
@@ -435,17 +435,17 @@ def update(frame):
     dashboard = (
         "BNO085 LIVE VIEW\n"
         "----------------\n\n"
-        f"Roll:    {roll:7.1f}°\n"
-        f"Pitch:   {pitch:7.1f}°\n"
-        f"Yaw:     {yaw:7.1f}°\n\n"
+        f"Roll: {roll:7.1f}°\n"
+        f"Pitch: {pitch:7.1f}°\n"
+        f"Yaw: {yaw:7.1f}°\n\n"
         f"Gravity axis: {gravity_axis}\n"
         f"Gravity face: {gravity_face_name}\n"
-        f"|g|:          {gravity_mag:5.2f} m/s²\n\n"
-        f"Motion axis:  {motion_axis}\n"
+        f"|g|: {gravity_mag:5.2f} m/s²\n\n"
+        f"Motion axis: {motion_axis}\n"
         f"Linear accel: {linear_mag:5.2f} m/s²\n\n"
         "PLOT KEY\n"
         "--------\n"
-        "Red arrow     = gravity side\n"
+        "Red arrow = gravity side\n"
         "Magenta arrow = push/motion\n"
         "Small G label = gravity face\n"
     )
@@ -470,7 +470,7 @@ def update(frame):
         "FACE COLOR KEY\n"
         "--------------\n"
         "Orange = TOP +Z\n"
-        "Gray   = BOTTOM -Z\n"
+        "Cyan   = BOTTOM -Z\n"
         "Blue   = FRONT -Y\n"
         "Purple = BACK +Y\n"
         "Green  = RIGHT +X\n"
