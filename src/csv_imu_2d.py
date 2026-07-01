@@ -258,21 +258,15 @@ def choose_frames(t, n, fps, max_frames):
     if n <= 1:
         return np.array([0])
 
-    dt = np.diff(t)
-    dt = dt[np.isfinite(dt) & (dt > 0)]
+    # max_frames = 0 means use every CSV row.
+    if max_frames == 0:
+        return np.arange(n)
 
-    if len(dt) == 0:
-        step = 1
-    else:
-        sample_rate = 1.0 / np.median(dt)
-        step = max(1, int(round(sample_rate / fps)))
+    # If max_frames is positive, evenly sample that many frames.
+    if n > max_frames:
+        return np.linspace(0, n - 1, max_frames).astype(int)
 
-    idx = np.arange(0, n, step)
-
-    if max_frames > 0 and len(idx) > max_frames:
-        idx = np.linspace(0, n - 1, max_frames).astype(int)
-
-    return np.unique(idx)
+    return np.arange(n)
 
 
 def smooth(values, window):

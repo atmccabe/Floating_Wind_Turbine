@@ -77,11 +77,13 @@ class Sensor:
         self.spi.open(0, 0)
 
         self.spi.mode = 0b11
-        self.spi.max_speed_hz = 10000
+        self.spi.max_speed_hz = 100000
         self.spi.bits_per_word = 8
         self.spi.lsbfirst = False
+        self.spi.no_cs = False
+        self.spi.cshigh = False
 
-        time.sleep(0.5)
+        time.sleep(1.0)
 
         prod_id = self.check_product_id()
 
@@ -109,10 +111,10 @@ class Sensor:
 
     def read_u16(self, address):
         self.spi.xfer2([address & 0x7F, 0x00])
-        time.sleep(0.0001)
+        time.sleep(0.002)
 
         data = self.spi.xfer2([0x00, 0x00])
-        time.sleep(0.0001)
+        time.sleep(0.002)
 
         return ((data[0] << 8) | data[1]) & 0xFFFF
 
@@ -241,3 +243,95 @@ class Sensor:
             "diag_stat": f"0x{diag_stat:04X}",
             "prod_id": f"0x{prod_id:04X}",
         }
+
+
+if __name__ == "__main__":
+    import argparse
+    import csv
+    from datetime import datetime
+    from pathlib import Path
+
+    parser = argparse.ArgumentParser()
+    parser.add_argument("sensor", nargs="?", default="adis16470")
+    parser.add_argument("--rate", type=float, default=20.0)
+    parser.add_argument("--duration", type=float, default=None)
+    args = parser.parse_args()
+
+    if args.sensor != "adis16470":
+        raise ValueError("Use: adis16470")
+
+    raw_dir = Path("sensors/imu/adis16470/data/raw")
+    raw_dir.mkdir(parents=True, exist_ok=True)
+
+    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+    csv_path = raw_dir / f"adis16470_log_{stamp}.csv"
+
+    sensor = Sensor()
+
+    print("Starting ADIS16470 logger...")
+    print(f"Rate: {args.rate} Hz")
+    print(f"Duration: {args.duration if args.duration is not None else 'until Ctrl+C'} seconds")
+    print(f"Saving data to: {csv_path}")
+    print()
+
+    sensor.connect()
+
+    fieldnames = ["sample", "time_s", "sensor"] + sensor.csv_fields
+
+    dt = 1.0 / args.rate
+    start = time.monotonic()
+    sample = 0
+
+    try:
+        with csv_path.open("w", newline="") as f:
+            writer = csv.DictWriter(f, fieldnames=fieldnames)
+            writer.writeheader()
+
+            while True:
+                loop_start = time.monotonic()
+                time_s = loop_start - start
+
+                if args.duration is not None and time_s >= args.duration:
+                    print("Duration reached. Stopping.")
+                    break
+
+                data = sensor.read()
+
+                row = {
+                    "sample": sample,
+                    "time_s": time_s,
+                    "sensor": sensor.name,
+                    **data,
+                }
+
+                writer.writerow(row)
+                f.flush()
+
+                print(
+                    f"t={time_s:7.2f}s | "
+                    f"roll={data['roll_deg']:8.2f} "
+                    f"pitch={data['pitch_deg']:8.2f} "
+                    f"yaw={data['yaw_deg']:8.2f} | "
+                    f"ax={data['accel_x_g']:7.3f} "
+                    f"ay={data['accel_y_g']:7.3f} "
+                    f"az={data['accel_z_g']:7.3f} | "
+                    f"prod={data['prod_id']}"
+                )
+
+                sample += 1
+
+                elapsed = time.monotonic() - loop_start
+                sleep_time = dt - elapsed
+
+                if sleep_time > 0:
+                    time.sleep(sleep_time)
+
+    except KeyboardInterrupt:
+        print()
+        print("Stopped by user.")
+
+    finally:
+        if sensor.spi is not None:
+            sensor.spi.close()
+
+        print(f"Saved CSV: {csv_path}")
