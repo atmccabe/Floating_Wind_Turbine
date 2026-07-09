@@ -50,6 +50,14 @@ def get_column(df, possible_names):
     return None
 
 
+def make_numeric(df, column):
+    if column is None:
+        return False
+
+    df[column] = pd.to_numeric(df[column], errors="coerce")
+    return df[column].notna().any()
+
+
 def save_orientation_plot(df, output_path):
     roll_col = get_column(df, ["roll_deg", "roll_deg_zeroed"])
     pitch_col = get_column(df, ["pitch_deg", "pitch_deg_zeroed"])
@@ -57,6 +65,22 @@ def save_orientation_plot(df, output_path):
 
     if roll_col is None or pitch_col is None or yaw_col is None:
         print("Skipping orientation plot. Missing roll/pitch/yaw columns.")
+        return
+
+    if not make_numeric(df, "time_s"):
+        print("Skipping orientation plot. Missing usable time_s column.")
+        return
+
+    if not make_numeric(df, roll_col):
+        print("Skipping orientation plot. Missing usable roll data.")
+        return
+
+    if not make_numeric(df, pitch_col):
+        print("Skipping orientation plot. Missing usable pitch data.")
+        return
+
+    if not make_numeric(df, yaw_col):
+        print("Skipping orientation plot. Missing usable yaw data.")
         return
 
     plt.figure(figsize=(12, 6))
@@ -79,22 +103,35 @@ def save_orientation_plot(df, output_path):
 
 
 def save_acceleration_plot(df, output_path):
-    needed_columns = [
-        "accel_x_mps2",
-        "accel_y_mps2",
-        "accel_z_mps2",
-    ]
+    accel_x_col = get_column(df, ["accel_x_mps2", "accel_x"])
+    accel_y_col = get_column(df, ["accel_y_mps2", "accel_y"])
+    accel_z_col = get_column(df, ["accel_z_mps2", "accel_z"])
 
-    for column in needed_columns:
-        if column not in df.columns:
-            print("Skipping acceleration plot. Missing acceleration columns.")
-            return
+    if accel_x_col is None or accel_y_col is None or accel_z_col is None:
+        print("Skipping acceleration plot. Missing acceleration columns.")
+        return
+
+    if not make_numeric(df, "time_s"):
+        print("Skipping acceleration plot. Missing usable time_s column.")
+        return
+
+    if not make_numeric(df, accel_x_col):
+        print("Skipping acceleration plot. Missing usable accel X data.")
+        return
+
+    if not make_numeric(df, accel_y_col):
+        print("Skipping acceleration plot. Missing usable accel Y data.")
+        return
+
+    if not make_numeric(df, accel_z_col):
+        print("Skipping acceleration plot. Missing usable accel Z data.")
+        return
 
     plt.figure(figsize=(12, 6))
 
-    plt.plot(df["time_s"], df["accel_x_mps2"], label="Accel X")
-    plt.plot(df["time_s"], df["accel_y_mps2"], label="Accel Y")
-    plt.plot(df["time_s"], df["accel_z_mps2"], label="Accel Z")
+    plt.plot(df["time_s"], df[accel_x_col], label="Accel X")
+    plt.plot(df["time_s"], df[accel_y_col], label="Accel Y")
+    plt.plot(df["time_s"], df[accel_z_col], label="Accel Z")
 
     plt.title("Sensor Acceleration vs Time")
     plt.xlabel("Time (s)")
@@ -110,22 +147,35 @@ def save_acceleration_plot(df, output_path):
 
 
 def save_gyro_plot(df, output_path):
-    needed_columns = [
-        "gyro_x_radps",
-        "gyro_y_radps",
-        "gyro_z_radps",
-    ]
+    gyro_x_col = get_column(df, ["gyro_x_radps", "gyro_x"])
+    gyro_y_col = get_column(df, ["gyro_y_radps", "gyro_y"])
+    gyro_z_col = get_column(df, ["gyro_z_radps", "gyro_z"])
 
-    for column in needed_columns:
-        if column not in df.columns:
-            print("Skipping gyro plot. Missing gyro columns.")
-            return
+    if gyro_x_col is None or gyro_y_col is None or gyro_z_col is None:
+        print("Skipping gyro plot. Missing gyro columns.")
+        return
+
+    if not make_numeric(df, "time_s"):
+        print("Skipping gyro plot. Missing usable time_s column.")
+        return
+
+    if not make_numeric(df, gyro_x_col):
+        print("Skipping gyro plot. Missing usable gyro X data.")
+        return
+
+    if not make_numeric(df, gyro_y_col):
+        print("Skipping gyro plot. Missing usable gyro Y data.")
+        return
+
+    if not make_numeric(df, gyro_z_col):
+        print("Skipping gyro plot. Missing usable gyro Z data.")
+        return
 
     plt.figure(figsize=(12, 6))
 
-    plt.plot(df["time_s"], df["gyro_x_radps"], label="Gyro X")
-    plt.plot(df["time_s"], df["gyro_y_radps"], label="Gyro Y")
-    plt.plot(df["time_s"], df["gyro_z_radps"], label="Gyro Z")
+    plt.plot(df["time_s"], df[gyro_x_col], label="Gyro X")
+    plt.plot(df["time_s"], df[gyro_y_col], label="Gyro Y")
+    plt.plot(df["time_s"], df[gyro_z_col], label="Gyro Z")
 
     plt.title("Sensor Gyroscope vs Time")
     plt.xlabel("Time (s)")
@@ -176,4 +226,3 @@ def main():
 
 if __name__ == "__main__":
     main()
-
